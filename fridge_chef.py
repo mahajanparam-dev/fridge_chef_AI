@@ -7,14 +7,18 @@ load_dotenv()
 API_KEY = os.getenv('SPOONACULAR_API_KEY')
 
 def get_live_recipe(food_item):
-    url = f"https://api.spoonacular.com/recipes/complexSearch?query={food_item}&number=1&apiKey={API_KEY}"
+    # Added &addRecipeInformation=True to the URL
+    url = f"https://api.spoonacular.com/recipes/complexSearch?query={food_item}&number=1&addRecipeInformation=True&apiKey={API_KEY}"
     try:
         response = requests.get(url)
-        # Check if the API key actually worked (Status 200 is success)
         if response.status_code == 200:
             data = response.json()
             if data.get("results"):
-                return data["results"][0]["title"]
+                recipe = data["results"][0]
+                title = recipe["title"]
+                # We grab the sourceUrl so the user can actually go cook it!
+                link = recipe.get("sourceUrl", "No link available")
+                return {"title": title, "link": link}
         return None
     except:
         return "error"
@@ -49,7 +53,8 @@ def smart_chef_app():
             continue
         if "surprise" in user_input:
             print("Chef: Ooh, a risk-taker! Let me find something random...")
-            continue         
+    # 'pasta' is just a placeholder here, but you could use a 'random' API endpoint
+        recipe_title = get_live_recipe("random")      
 
         # 4. If it's none of the above, try searching the API
         print(f"Chef: Let me check my cookbook for '{user_input}'...")
